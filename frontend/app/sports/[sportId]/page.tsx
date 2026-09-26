@@ -159,7 +159,7 @@ export default async function SportPage({ params }: SportPageProps) {
                 </h2>
               </div>
 
-              <div className="match-stack p-4 sm:p-5">
+              <div className="match-stack flex flex-col gap-3 p-4 sm:p-5">
                 {upcomingMatches.length > 0 ? (
                   upcomingMatches.slice(0, 4).map((match) => (
                     <MatchCard

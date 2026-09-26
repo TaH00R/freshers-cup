@@ -27,7 +27,7 @@ export default async function SportsPage() {
           </div>
 
           {orderedSports.length > 0 ? (
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))]">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
               {orderedSports.map((sport) => (
                 <SportCard
                   key={sport.id}

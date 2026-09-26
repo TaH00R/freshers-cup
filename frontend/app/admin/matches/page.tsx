@@ -157,10 +157,9 @@ export default function AdminMatchesPage() {
         ]);
 
       const sortedMatches = [...matchesData].sort(
-        (a, b) =>
-          new Date(a.scheduledAt).getTime() -
-          new Date(b.scheduledAt).getTime()
-      );
+  (a, b) =>
+    a.scheduledAt.localeCompare(b.scheduledAt)
+);
 
       setMatches(sortedMatches);
 
@@ -212,33 +211,24 @@ export default function AdminMatchesPage() {
   }
 
   function openEditModal(match: Match) {
-    const localDate = new Date(match.scheduledAt);
+  setEditingMatch(match);
 
-    const formattedDate = new Date(
-      localDate.getTime() -
-        localDate.getTimezoneOffset() * 60000
-    )
-      .toISOString()
-      .slice(0, 16);
+  setForm({
+    sportId: String(match.sportId),
+    teamAId: String(match.teamAId),
+    teamBId: String(match.teamBId),
+    scoreA: match.scoreA ?? 0,
+    scoreB: match.scoreB ?? 0,
+    venue: match.venue ?? "",
+    roundName: match.roundName ?? "",
+    scheduledAt: match.scheduledAt.slice(0, 16),
+    status: match.status,
+  });
 
-    setEditingMatch(match);
-
-    setForm({
-      sportId: String(match.sportId),
-      teamAId: String(match.teamAId),
-      teamBId: String(match.teamBId),
-      scoreA: match.scoreA ?? 0,
-      scoreB: match.scoreB ?? 0,
-      venue: match.venue ?? "",
-      roundName: match.roundName ?? "",
-      scheduledAt: formattedDate,
-      status: match.status,
-    });
-
-    setError("");
-    setSuccess("");
-    setShowModal(true);
-  }
+  setError("");
+  setSuccess("");
+  setShowModal(true);
+}
 
   function closeModal() {
     if (saving) {
@@ -277,18 +267,16 @@ export default function AdminMatchesPage() {
       setError("");
 
       const payload: MatchCreateRequest = {
-        sportId: Number(form.sportId),
-        teamAId: Number(form.teamAId),
-        teamBId: Number(form.teamBId),
-        scoreA: Number(form.scoreA),
-        scoreB: Number(form.scoreB),
-        venue: form.venue.trim() || null,
-        roundName: form.roundName.trim() || null,
-        scheduledAt: new Date(
-          form.scheduledAt
-        ).toISOString(),
-        status: form.status,
-      };
+  sportId: Number(form.sportId),
+  teamAId: Number(form.teamAId),
+  teamBId: Number(form.teamBId),
+  scoreA: Number(form.scoreA),
+  scoreB: Number(form.scoreB),
+  venue: form.venue.trim() || null,
+  roundName: form.roundName.trim() || null,
+  scheduledAt: form.scheduledAt,
+  status: form.status,
+};
 
       const savedMatch = editingMatch
         ? await api.matches.update(
@@ -448,15 +436,25 @@ export default function AdminMatchesPage() {
   }
 
   function formatDate(value: string) {
-    return new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(value));
-  }
+  const [datePart, timePart] = value.split("T");
 
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
+
+  const date = new Date(year, month - 1, day);
+
+  return `${String(day).padStart(2, "0")} ${date.toLocaleString(
+    "en-IN",
+    {
+      month: "short",
+    }
+  )} ${year}, ${String(hour % 12 || 12).padStart(
+    2,
+    "0"
+  )}:${String(minute).padStart(2, "0")} ${
+    hour >= 12 ? "pm" : "am"
+  }`;
+}
   function statusClasses(status: MatchStatus) {
     switch (status) {
       case "LIVE":
